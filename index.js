@@ -11,7 +11,8 @@ var AWS = require("aws-sdk"),
 	gm = require("gm"),
 	im = gm.subClass({imageMagick: true}),
 	meta = module.parent.require("./meta"),
-	db = module.parent.require("./database");
+	db = module.parent.require("./database"),
+        filem = module.parent.require('./file');
 
 var plugin = {}
 
@@ -279,6 +280,14 @@ plugin.uploadFile = function (data, callback) {
 		winston.error("error:file-too-big, " + meta.config.maximumFileSize );
 		return callback(new Error("[[error:file-too-big, " + meta.config.maximumFileSize + "]]"));
 	}
+        
+        // Check allowed filetypes, from src/controllers/uploads.js
+        var allowed = filem.allowedExtensions();
+        var extension = path.extname(file.name).toLowerCase();
+        
+        if (!extension || extension === '.' || (allowed.length > 0 && allowed.indexOf(extension) === -1)) {
+            return callback(new Error('[[error:invalid-file-type, ' + allowed.join('&#44; ') + ']]'));
+        }
 
 	fs.readFile(file.path, function (err, buffer) {
 		uploadToS3(file.name, err, buffer, callback);
