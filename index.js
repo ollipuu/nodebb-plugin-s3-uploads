@@ -231,6 +231,16 @@ plugin.uploadImage = function (data, callback) {
 			return callback(new Error("invalid mime type"));
 		}
 
+                // When uploading a profile image or cover, image.name is
+                // missing file extension. Let's get the extension from the
+                // image path instead.
+                var path_ext = path.extname(image.path);
+                var image_ext = path.extname(image.name);
+                
+                if (image_ext === '') {
+                    image.name += path_ext;
+                }
+
 		fs.readFile(image.path, function (err, buffer) {
 			uploadToS3(image.name, err, buffer, callback);
 		});
